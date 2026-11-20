@@ -28,7 +28,7 @@ jobs:
       - name: 3. Gradle 권한 부여 및 빌드
         env:
           GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
           chmod +x gradlew
           ./gradlew clean bootJar -x test
@@ -46,17 +46,31 @@ jobs:
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:${{ github.sha }}
 
-      - name: 6. GitHub Secrets → env 파일 생성
+      - name: 6. env 파일 생성 (지정한 키만)
         env:
-          SECRETS_JSON: ${{ toJSON(secrets) }}
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_KAFKA_BOOTSTRAP_SERVERS: ${{ secrets.SPRING_KAFKA_BOOTSTRAP_SERVERS }}
+          EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${{ secrets.EUREKA_CLIENT_SERVICEURL_DEFAULTZONE }}
         run: |
-          printf '%s' "$SECRETS_JSON" | jq -r '
-            to_entries[]
-            | "\(.key)=\(.value | @json)"
-            | select(.key | IN("github_token", "EC2_SSH_KEY", "DOCKER_PASSWORD") | not)
-          ' > ${{ env.SERVICE_NAME }}.env
-          chmod 600 ${{ env.SERVICE_NAME }}.env
-          echo "생성된 키 목록:" && cut -d= -f1 ${{ env.SERVICE_NAME }}.env
+          umask 077
+          KEYS="SPRING_DATASOURCE_URL SPRING_DATASOURCE_USERNAME SPRING_DATASOURCE_PASSWORD SPRING_KAFKA_BOOTSTRAP_SERVERS EUREKA_CLIENT_SERVICEURL_DEFAULTZONE"
+          ENV_FILE="$SERVICE_NAME.env"
+          : > "$ENV_FILE"
+          for key in $KEYS; do
+            value="${!key}"
+            if [ -z "$value" ]; then
+              echo "::error::Secret '$key' 가 등록되지 않았습니다."
+              exit 1
+            fi
+            if [[ "$value" == *"'"* || "$value" == *$'\n'* ]]; then
+              echo "::error::Secret '$key' 에 작은따옴표나 줄바꿈이 포함되어 있습니다."
+              exit 1
+            fi
+            # 작은따옴표로 감싸 $ 등 특수문자가 compose에서 치환되지 않도록 함
+            printf "%s='%s'\n" "$key" "$value" >> "$ENV_FILE"
+          done
 
       - name: 7. env 파일 EC2 전송
         uses: appleboy/scp-action@v0.1.7
@@ -66,6 +80,10 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: ${{ env.SERVICE_NAME }}.env
           target: /home/ubuntu/infra-backend/env
+
+      - name: 7-1. Runner의 env 파일 삭제
+        if: always()
+        run: rm -f ${{ env.SERVICE_NAME }}.env
 
       - name: 8. 백엔드 EC2 원격 자동 배포
         uses: appleboy/ssh-action@v1.0.3
