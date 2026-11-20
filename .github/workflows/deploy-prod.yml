@@ -53,6 +53,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd ~/infra-backend
             curl -s -O https://raw.githubusercontent.com/teamOn5/infra/main/backend-server/docker-compose.apps.yml
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
