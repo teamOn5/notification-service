@@ -32,39 +32,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: gradlew.bat clean build --no-daemon
 
-      - name: Create .env
-        shell: powershell
-        env:
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-          SPRING_KAFKA_BOOTSTRAP_SERVERS: ${{ secrets.SPRING_KAFKA_BOOTSTRAP_SERVERS }}
-          EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${{ secrets.EUREKA_CLIENT_SERVICEURL_DEFAULTZONE }}
-        run: |
-          $keys = @(
-            'SPRING_DATASOURCE_URL',
-            'SPRING_DATASOURCE_USERNAME',
-            'SPRING_DATASOURCE_PASSWORD',
-            'SPRING_KAFKA_BOOTSTRAP_SERVERS',
-            'EUREKA_CLIENT_SERVICEURL_DEFAULTZONE'
-          )
-          $lines = foreach ($k in $keys) {
-            $v = [Environment]::GetEnvironmentVariable($k)
-            if ([string]::IsNullOrEmpty($v)) {
-              Write-Host "::error::Secret '$k' 가 등록되지 않았습니다."
-              exit 1
-            }
-            if ($v -match "['\r\n]") {
-              Write-Host "::error::Secret '$k' 에 작은따옴표나 줄바꿈이 포함되어 있습니다."
-              exit 1
-            }
-            # 작은따옴표로 감싸 $ 등 특수문자가 compose에서 치환되지 않도록 함
-            "$k='$v'"
-          }
-          # UTF-8 (BOM 없음)으로 저장 - BOM이 있으면 첫 번째 키를 docker compose가 못 읽음
-          $path = Join-Path (Get-Location) '.env'
-          [System.IO.File]::WriteAllLines($path, [string[]]$lines, (New-Object System.Text.UTF8Encoding($false)))
-
       - name: Prepare Docker Network and Clean Existing Container
         run: |
           docker network create spharos 2>nul
@@ -76,6 +43,3 @@ jobs:
 
       - name: Verify Running Container
         run: docker compose ps
-      - name: Remove .env
-        if: always()
-        run: if exist .env del /f /q .env

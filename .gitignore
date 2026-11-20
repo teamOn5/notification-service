@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+.env
+*.env
+
+### 로컬 인증 정보 (GitHub Packages 토큰) ###
+gradle.properties
