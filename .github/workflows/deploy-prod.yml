@@ -1,0 +1,84 @@
+name: Deploy (prod) with ec2-instance
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  SERVICE_NAME: notification-service
+
+permissions:
+  contents: read
+  packages: read   # GitHub Packages(common-module) 의존성 다운로드용
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. 코스 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 2. JDK 17 설치
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 3. Gradle 권한 부여 및 빌드
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew clean bootJar -x test
+
+      - name: 4. Docker Hub 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 5. Docker 이미지 빌드 및 푸시
+        run: |
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE_NAME }}
+          docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${{ github.sha }} .
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:${{ github.sha }}
+
+      - name: 6. GitHub Secrets → env 파일 생성
+        env:
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+        run: |
+          printf '%s' "$SECRETS_JSON" | jq -r '
+            to_entries[]
+            | "\(.key)=\(.value | @json)"
+            | select(.key | IN("github_token", "EC2_SSH_KEY", "DOCKER_PASSWORD") | not)
+          ' > ${{ env.SERVICE_NAME }}.env
+          chmod 600 ${{ env.SERVICE_NAME }}.env
+          echo "생성된 키 목록:" && cut -d= -f1 ${{ env.SERVICE_NAME }}.env
+
+      - name: 7. env 파일 EC2 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 15.164.172.146
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: ${{ env.SERVICE_NAME }}.env
+          target: /home/ubuntu/infra-backend/env
+
+      - name: 8. 백엔드 EC2 원격 자동 배포
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 15.164.172.146
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/infra-backend
+            chmod 600 env/${{ env.SERVICE_NAME }}.env
+            curl -s -O https://raw.githubusercontent.com/teamOn5/infra/main/backend-server/docker-compose.apps.yml
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            export IMAGE_TAG=${{ github.sha }}
+            docker compose -f docker-compose.apps.yml pull ${{ env.SERVICE_NAME }}
+            docker compose -f docker-compose.apps.yml up -d --no-deps ${{ env.SERVICE_NAME }}
+            docker image prune -f
