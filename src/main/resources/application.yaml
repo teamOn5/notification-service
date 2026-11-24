@@ -1,27 +1,27 @@
 server:
-  port: 8080
+  port: 0
   forward-headers-strategy: framework
 
 spring:
   application:
     name: notification-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://172.31.39.86:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true}
-    username: ${SPRING_DATASOURCE_USERNAME:user}
-    password: ${SPRING_DATASOURCE_PASSWORD:1234}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:172.31.39.86}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
-      password: ${SPRING_DATA_REDIS_PASSWORD:1234}
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://tjsghkwlsgh_db_user:1234@cluster0.61vehwi.mongodb.net/live_stream_db?retryWrites=true&w=majority}
+      uri: ${SPRING_DATA_MONGODB_URI}
 
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://172.31.29.243:8761/eureka/}
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
     register-with-eureka: true
     fetch-registry: true
   instance:
