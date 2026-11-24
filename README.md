@@ -1,10 +1,10 @@
-# 🔔 teamOn5 마이크로서비스 표준 템플릿 (Notification Service)
+# teamOn5 마이크로서비스 표준 템플릿 (Notification Service)
 
 > **이 레포지토리는 teamOn5의 모든 마이크로서비스가 복제(Replicate)하여 사용할 수 있도록 검증된 [공통 CI/CD & Eureka & Gateway 표준 템플릿]입니다.**
 
 ---
 
-## 🏛️ 1. 아키텍처 및 트래픽 흐름
+## 1. 아키텍처 및 트래픽 흐름
 
 ```
 [사용자 브라우저]
@@ -30,7 +30,7 @@
 
 ---
 
-## 🚀 2. 새 마이크로서비스 만들 때 복제 가이드 (팀원 복사 방법)
+## 2. 새 마이크로서비스 만들 때 복제 가이드 (팀원 복사 방법)
 
 새로운 마이크로서비스(예: `order-service`, `chat-service`, `recipe-service` 등)를 만들 때는 이 레포지토리 코드를 기반으로 **딱 4곳만 본인 서비스명으로 수정**하면 즉시 자동 배포 파이프라인이 완성됩니다.
 
@@ -130,7 +130,7 @@ env:
 
 ---
 
-## ⚙️ 3. 기술 스택 및 환경 정보
+## 3. 기술 스택 및 환경 정보
 
 | 분류 | 기술 / 사양 | 비고 |
 | :--- | :--- | :--- |
@@ -142,7 +142,7 @@ env:
 
 ---
 
-## 🧪 4. 검증 및 테스트 엔드포인트
+## 4. 검증 및 테스트 엔드포인트
 
 - **프론트엔드 연동 확인:** `https://onfrontend.vercel.app/api/notifications/test`
 - **ALB 로드밸런서 확인:** `http://app-alb-1347922990.ap-northeast-2.elb.amazonaws.com/api/notifications/test`
@@ -151,7 +151,7 @@ env:
 
 ---
 
-## 💡 5. 팀원 주의사항 (FAQ)
+## 5. 팀원 주의사항 (FAQ)
 
 1. **GitHub Packages 권한 에러가 날 때 (`common-module` 다운로드 실패):**  
    조직 Secrets에 `GH_PACKAGES_TOKEN` (Personal Access Token, `read:packages` 권한)이 등록되어 있어야 합니다. (현재 조직 레벨에 공유되어 있으므로 자동으로 상속됩니다).
