@@ -28,7 +28,7 @@ jobs:
       - name: 3. Gradle 권한 부여 및 빌드
         env:
           GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           chmod +x gradlew
           ./gradlew clean bootJar -x test
