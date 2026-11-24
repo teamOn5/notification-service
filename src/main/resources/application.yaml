@@ -10,6 +10,13 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:user}
     password: ${SPRING_DATASOURCE_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:172.31.39.86}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:1234}
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://tjsghkwlsgh_db_user:1234@cluster0.61vehwi.mongodb.net/live_stream_db?retryWrites=true&w=majority}
 
 eureka:
   client:
