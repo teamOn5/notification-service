@@ -1,4 +1,4 @@
-# teamOn5 마이크로서비스 표준 템플릿 (Notification Service)
+# TeamOn5 마이크로서비스 표준 템플릿 (Notification Service)
 
 > **이 레포지토리는 teamOn5의 모든 마이크로서비스가 복제(Replicate)하여 사용할 수 있도록 검증된 [공통 CI/CD & Eureka & Gateway 표준 템플릿]입니다.**
 
