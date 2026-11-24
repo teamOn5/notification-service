@@ -1,9 +1,15 @@
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 spring:
   application:
     name: notification-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://172.31.39.86:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:user}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 eureka:
   client:
@@ -22,3 +28,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+springdoc:
+  api-docs:
+    path: /api/notifications/v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
