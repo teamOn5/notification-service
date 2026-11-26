@@ -55,7 +55,6 @@ jobs:
           script: |
             set -e
             cd ~/infra-backend
-            curl -s -O https://raw.githubusercontent.com/teamOn5/infra/main/backend-server/docker-compose.apps.yml
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             export IMAGE_TAG=${{ github.sha }}
             docker compose -f docker-compose.apps.yml pull ${{ env.SERVICE_NAME }}
