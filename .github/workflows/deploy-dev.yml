@@ -31,15 +31,3 @@ jobs:
           GITHUB_USERNAME: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: gradlew.bat clean build -x test --no-daemon
-
-      - name: Prepare Docker Network and Clean Existing Container
-        run: |
-          docker network create spharos 2>nul
-          docker rm -f eureka 2>nul
-          exit /b 0
-
-      - name: Deploy Eureka with Docker Compose
-        run: docker compose up -d --build
-
-      - name: Verify Running Container
-        run: docker compose ps
